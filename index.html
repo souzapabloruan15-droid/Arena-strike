@@ -3,112 +3,332 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ARENA STRIKE</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#091321">
+<title>ARENA STRIKE 3D</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#091321;color:white;font-family:Arial;text-align:center}
-header{padding:22px;background:#101f30;font-size:25px;font-weight:bold;letter-spacing:3px}
-header span{color:#caff38}
-main{max-width:800px;margin:auto;padding:20px}
-.panel{background:#17283b;border:1px solid #40536a;border-radius:20px;padding:25px;margin:15px 0}
-h1{font-size:48px;margin:15px 0}
-h1 span{color:#caff38}
+body{margin:0;overflow:hidden;background:#091321;color:white;font-family:Arial}
+canvas{display:block}
+#menu{position:fixed;inset:0;z-index:5;display:grid;place-items:center;background:#091321ee;padding:15px;text-align:center}
+.card{background:#17283b;padding:24px;border-radius:20px;border:1px solid #52677d;width:min(450px,100%)}
+h1{font-size:38px}h1 span{color:#caff38}
 p{color:#bdcbd9;line-height:1.5}
-button{border:0;border-radius:12px;padding:14px 20px;margin:6px;background:#caff38;color:#101820;font-weight:bold;font-size:15px;cursor:pointer}
-.alt{background:#30445b;color:white}
-.agents{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
-.agent{background:#22374d;border-radius:15px;padding:15px;min-width:100px}
-.agent div{font-size:35px}
-#game{display:none}
-.hud{display:flex;justify-content:space-around;color:#caff38;font-weight:bold;margin:15px}
-.arena{height:300px;position:relative;overflow:hidden;border-radius:15px;background:linear-gradient(#284b60 0 55%,#526e4b 55% 58%,#172a29 58%)}
-.target{position:absolute;font-size:48px;cursor:pointer;left:40%;top:35%;user-select:none}
-footer{padding:25px;color:#77899b;font-size:12px}
+button{border:0;border-radius:12px;padding:13px;background:#caff38;color:#101820;font-weight:bold;margin:5px}
+.agent{background:#30445b;color:white}
+.agent.selected{outline:2px solid #caff38}
+#start{width:100%;font-size:17px;margin-top:15px}
+#hud{position:fixed;top:10px;left:10px;right:10px;display:none;justify-content:space-between;pointer-events:none;font-weight:bold}
+#hud span{background:#101f30dd;padding:9px;border-radius:9px}
+#controls{position:fixed;bottom:15px;left:12px;right:12px;display:none;justify-content:space-between;align-items:end}
+.pad{display:grid;grid-template-columns:repeat(3,52px);gap:5px}
+.ctrl{width:52px;height:52px;border-radius:50%;background:#14283bdd;color:white;border:2px solid #caff38;font-size:22px;padding:0;touch-action:none}
+#moveUp{grid-column:2}
+#moveLeft{grid-column:1}
+#moveDown{grid-column:2}
+#moveRight{grid-column:3}
+#action{width:70px;height:70px;border-radius:50%;font-size:13px}
+#message{position:fixed;top:55px;width:100%;text-align:center;color:#caff38;pointer-events:none}
+#finish{display:none;position:fixed;inset:0;z-index:6;background:#091321ee;place-items:center;text-align:center;padding:15px}
 </style>
 </head>
 <body>
-<header>ARENA <span>STRIKE</span></header>
-<main>
-<section id="lobby">
-<div class="panel">
-<p>PREPARE-SE PARA A BATALHA</p>
-<h1>DOMINE A <span>ARENA</span></h1>
-<p>Escolha seu agente e mostre sua habilidade!</p>
-<button onclick="start()">▶ JOGAR AGORA</button>
+<div id="menu">
+ <div class="card">
+  <p style="color:#caff38;letter-spacing:3px">BEM-VINDO À ARENA</p>
+  <h1>ARENA <span>STRIKE</span></h1>
+  <p>Escolha seu agente:</p>
+  <button class="agent selected" data-agent="Kairo">🦾 KAIRO</button>
+  <button class="agent" data-agent="Luna">⚡ LUNA</button>
+  <button class="agent" data-agent="Ravi">🛡️ RAVI</button>
+  <p>Explore a arena 3D e encontre os robôs!</p>
+  <button id="start">▶ INICIAR PARTIDA</button>
+ </div>
 </div>
-<div class="panel">
-<h2>ESCOLHA SEU AGENTE</h2>
-<div class="agents">
-<div class="agent"><div>🦾</div>Kairo</div>
-<div class="agent"><div>⚡</div>Luna</div>
-<div class="agent"><div>🛡️</div>Ravi</div>
+
+<div id="hud">
+ <span>ARENA STRIKE</span>
+ <span>PONTOS: <b id="score">0</b></span>
+ <span>ROBÔS: <b id="remaining">5</b></span>
 </div>
+<div id="message"></div>
+
+<div id="controls">
+ <div class="pad">
+  <button class="ctrl" id="moveUp">↑</button>
+  <button class="ctrl" id="moveLeft">←</button>
+  <button class="ctrl" id="moveDown">↓</button>
+  <button class="ctrl" id="moveRight">→</button>
+ </div>
+ <button id="action">AÇÃO</button>
 </div>
-<div class="panel">
-<h2>MODOS DE JOGO</h2>
-<p>🎯 Desafio de pontuação</p>
-<p>🏃 Corrida de obstáculos — em breve</p>
-<p>🏆 Sobrevivência arcade — em breve</p>
+
+<div id="finish">
+ <div class="card">
+  <h1>FIM DE PARTIDA!</h1>
+  <p>Sua pontuação: <b id="finalScore">0</b></p>
+  <button onclick="location.reload()">JOGAR NOVAMENTE</button>
+ </div>
 </div>
-</section>
-<section id="game" class="panel">
-<h2>DESAFIO DE PONTUAÇÃO</h2>
-<p>Toque no robô para ganhar pontos!</p>
-<div class="hud">
-<span>PONTOS: <b id="score">0</b></span>
-<span>TEMPO: <b id="time">30</b>s</span>
-</div>
-<div class="arena">
-<div class="target" id="target" onclick="hit()">🤖</div>
-</div>
-<p id="message">Boa sorte!</p>
-<button onclick="reset()">RECOMEÇAR</button>
-<button class="alt" onclick="back()">VOLTAR</button>
-</section>
-</main>
-<footer>ARENA STRIKE • VERSÃO DEMONSTRATIVA</footer>
-<script>
-let score=0,time=30,active=false,timer;
-function start(){
-document.getElementById('lobby').style.display='none';
-document.getElementById('game').style.display='block';
-reset();
+
+<script type="module">
+import * as THREE from
+'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0x91b7c6);
+scene.fog=new THREE.Fog(0x91b7c6,25,65);
+
+const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,100);
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setSize(innerWidth,innerHeight);
+renderer.shadowMap.enabled=true;
+document.body.appendChild(renderer.domElement);
+
+scene.add(new THREE.HemisphereLight(0xffffff,0x526044,2));
+const sun=new THREE.DirectionalLight(0xffffff,2);
+sun.position.set(-8,15,8);
+sun.castShadow=true;
+scene.add(sun);
+
+function mat(color){
+ return new THREE.MeshStandardMaterial({color,roughness:.7});
 }
-function move(){
-let t=document.getElementById('target');
-t.style.left=(Math.random()*80+5)+'%';
-t.style.top=(Math.random()*65+5)+'%';
+
+const ground=new THREE.Mesh(
+ new THREE.PlaneGeometry(100,100),mat(0x536c4a)
+);
+ground.rotation.x=-Math.PI/2;
+ground.receiveShadow=true;
+scene.add(ground);
+scene.add(new THREE.GridHelper(60,30,0x9bb58a,0x71856a));
+
+function block(x,z,w,h,d,color){
+ const m=new THREE.Mesh(
+  new THREE.BoxGeometry(w,h,d),mat(color)
+ );
+ m.position.set(x,h/2,z);
+ m.castShadow=true;
+ m.receiveShadow=true;
+ scene.add(m);
 }
-function hit(){
-if(!active)return;
-score+=10;
-document.getElementById('score').textContent=score;
-move();
+
+for(let i=0;i<12;i++){
+ block(-13+(i%4)*8,-13+Math.floor(i/4)*9,
+  3,2+i%3,3,0x405b70);
 }
-function reset(){
-clearInterval(timer);
-score=0;time=30;active=true;
-document.getElementById('score').textContent=score;
-document.getElementById('time').textContent=time;
-document.getElementById('message').textContent='Boa partida!';
-move();
-timer=setInterval(()=>{
-time--;
-document.getElementById('time').textContent=time;
-if(time<=0){
-clearInterval(timer);
-active=false;
-document.getElementById('message').textContent='Fim de jogo! Pontuação: '+score;
+for(let i=0;i<8;i++){
+ block(-17+i*5,12,2,1.5,2,0x71806a);
 }
-},1000);
+
+function createPlayer(color){
+ const g=new THREE.Group();
+ const torso=new THREE.Mesh(
+  new THREE.CapsuleGeometry(.38,.65,4,8),mat(color)
+ );
+ torso.position.y=1.35;
+ torso.castShadow=true;
+ g.add(torso);
+
+ const head=new THREE.Mesh(
+  new THREE.SphereGeometry(.27,16,12),mat(0xd3a77e)
+ );
+ head.position.y=2.05;
+ head.castShadow=true;
+ g.add(head);
+
+ const visor=new THREE.Mesh(
+  new THREE.BoxGeometry(.38,.1,.08),mat(0x182b39)
+ );
+ visor.position.set(0,2.08,.23);
+ g.add(visor);
+
+ for(const x of [-.19,.19]){
+  const leg=new THREE.Mesh(
+   new THREE.CylinderGeometry(.13,.16,.65,8),mat(0x263746)
+  );
+  leg.position.set(x,.48,0);
+  g.add(leg);
+
+  const arm=new THREE.Mesh(
+   new THREE.CapsuleGeometry(.12,.48,3,6),mat(color)
+  );
+  arm.position.set(x*2,1.38,0);
+  arm.rotation.z=-x*1.5;
+  g.add(arm);
+ }
+ return g;
 }
-function back(){
-clearInterval(timer);
-active=false;
-document.getElementById('game').style.display='none';
-document.getElementById('lobby').style.display='block';
+
+const colors={
+ Kairo:0x627d91,
+ Luna:0xc7d7e8,
+ Ravi:0x8c9b50
+};
+
+let chosen="Kairo";
+const player=createPlayer(colors[chosen]);
+player.position.set(0,0,5);
+scene.add(player);
+
+document.querySelectorAll(".agent").forEach(btn=>{
+ btn.onclick=()=>{
+  document.querySelectorAll(".agent").forEach(b=>
+   b.classList.remove("selected")
+  );
+  btn.classList.add("selected");
+  chosen=btn.dataset.agent;
+  const replacement=createPlayer(colors[chosen]);
+  scene.remove(player);
+  player.clear();
+  replacement.children.forEach(child=>player.add(child));
+  scene.add(player);
+ };
+});
+
+const targets=[];
+const robotMat=mat(0xcaff38);
+
+for(let i=0;i<5;i++){
+ const robot=new THREE.Group();
+
+ const body=new THREE.Mesh(
+  new THREE.BoxGeometry(.65,.85,.45),mat(0x354b5b)
+ );
+ body.position.y=.75;
+ body.castShadow=true;
+ robot.add(body);
+
+ const head=new THREE.Mesh(
+  new THREE.SphereGeometry(.28,12,10),robotMat
+ );
+ head.position.y=1.38;
+ robot.add(head);
+
+ const eye=new THREE.Mesh(
+  new THREE.BoxGeometry(.3,.07,.04),mat(0x14212b)
+ );
+ eye.position.set(0,1.4,.26);
+ robot.add(eye);
+
+ robot.position.set(-8+i*4,0,-5-(i%2)*3);
+ robot.userData.alive=true;
+ scene.add(robot);
+ targets.push(robot);
 }
+
+let score=0;
+let remaining=5;
+let playing=false;
+const pressed={};
+
+document.getElementById("start").onclick=()=>{
+ document.getElementById("menu").style.display="none";
+ document.getElementById("hud").style.display="flex";
+ document.getElementById("controls").style.display="flex";
+ playing=true;
+};
+
+for(const id of ["moveUp","moveDown","moveLeft","moveRight"]){
+ const button=document.getElementById(id);
+ button.addEventListener("pointerdown",e=>{
+  e.preventDefault();
+  pressed[id]=true;
+  button.setPointerCapture(e.pointerId);
+ });
+ for(const event of ["pointerup","pointercancel","lostpointercapture"]){
+  button.addEventListener(event,()=>pressed[id]=false);
+ }
+}
+
+function hitTest(){
+ if(!playing)return;
+
+ const ray=new THREE.Raycaster();
+ ray.setFromCamera(new THREE.Vector2(0,0),camera);
+ const hits=ray.intersectObjects(
+  targets.flatMap(t=>t.children)
+ );
+
+ if(hits.length){
+  const robot=hits[0].object.parent;
+  if(robot.userData.alive){
+   robot.userData.alive=false;
+   robot.visible=false;
+   score+=100;
+   remaining--;
+   document.getElementById("score").textContent=score;
+   document.getElementById("remaining").textContent=remaining;
+
+   if(remaining===0){
+    playing=false;
+    document.getElementById("finalScore").textContent=score;
+    document.getElementById("finish").style.display="grid";
+   }
+  }
+ }else{
+  document.getElementById("message").textContent="Mire em um robô!";
+  setTimeout(()=>{
+   document.getElementById("message").textContent="";
+  },900);
+ }
+}
+
+document.getElementById("action").onclick=hitTest;
+renderer.domElement.addEventListener("click",()=>{
+ if(playing)hitTest();
+});
+
+const clock=new THREE.Clock();
+
+function animate(){
+ requestAnimationFrame(animate);
+ const dt=Math.min(clock.getDelta(),.04);
+
+ if(playing){
+  const speed=5*dt;
+  if(pressed.moveUp)player.position.z-=speed;
+  if(pressed.moveDown)player.position.z+=speed;
+  if(pressed.moveLeft)player.position.x-=speed;
+  if(pressed.moveRight)player.position.x+=speed;
+
+  player.position.x=THREE.MathUtils.clamp(
+   player.position.x,-17,17
+  );
+  player.position.z=THREE.MathUtils.clamp(
+   player.position.z,-15,15
+  );
+
+  targets.forEach(t=>{
+   if(t.visible){
+    t.position.y=.04*Math.sin(
+     performance.now()*.002+t.position.x
+    );
+   }
+  });
+ }
+
+ const desired=new THREE.Vector3(
+  player.position.x,
+  player.position.y+5.2,
+  player.position.z+8
+ );
+ camera.position.lerp(desired,.09);
+ camera.lookAt(
+  player.position.x,1.1,player.position.z-2
+ );
+ renderer.render(scene,camera);
+}
+
+animate();
+
+addEventListener("resize",()=>{
+ camera.aspect=innerWidth/innerHeight;
+ camera.updateProjectionMatrix();
+ renderer.setSize(innerWidth,innerHeight);
+});
 </script>
 </body>
 </html>
+  
