@@ -1,0 +1,114 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ARENA STRIKE</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#091321;color:white;font-family:Arial;text-align:center}
+header{padding:22px;background:#101f30;font-size:25px;font-weight:bold;letter-spacing:3px}
+header span{color:#caff38}
+main{max-width:800px;margin:auto;padding:20px}
+.panel{background:#17283b;border:1px solid #40536a;border-radius:20px;padding:25px;margin:15px 0}
+h1{font-size:48px;margin:15px 0}
+h1 span{color:#caff38}
+p{color:#bdcbd9;line-height:1.5}
+button{border:0;border-radius:12px;padding:14px 20px;margin:6px;background:#caff38;color:#101820;font-weight:bold;font-size:15px;cursor:pointer}
+.alt{background:#30445b;color:white}
+.agents{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
+.agent{background:#22374d;border-radius:15px;padding:15px;min-width:100px}
+.agent div{font-size:35px}
+#game{display:none}
+.hud{display:flex;justify-content:space-around;color:#caff38;font-weight:bold;margin:15px}
+.arena{height:300px;position:relative;overflow:hidden;border-radius:15px;background:linear-gradient(#284b60 0 55%,#526e4b 55% 58%,#172a29 58%)}
+.target{position:absolute;font-size:48px;cursor:pointer;left:40%;top:35%;user-select:none}
+footer{padding:25px;color:#77899b;font-size:12px}
+</style>
+</head>
+<body>
+<header>ARENA <span>STRIKE</span></header>
+<main>
+<section id="lobby">
+<div class="panel">
+<p>PREPARE-SE PARA A BATALHA</p>
+<h1>DOMINE A <span>ARENA</span></h1>
+<p>Escolha seu agente e mostre sua habilidade!</p>
+<button onclick="start()">▶ JOGAR AGORA</button>
+</div>
+<div class="panel">
+<h2>ESCOLHA SEU AGENTE</h2>
+<div class="agents">
+<div class="agent"><div>🦾</div>Kairo</div>
+<div class="agent"><div>⚡</div>Luna</div>
+<div class="agent"><div>🛡️</div>Ravi</div>
+</div>
+</div>
+<div class="panel">
+<h2>MODOS DE JOGO</h2>
+<p>🎯 Desafio de pontuação</p>
+<p>🏃 Corrida de obstáculos — em breve</p>
+<p>🏆 Sobrevivência arcade — em breve</p>
+</div>
+</section>
+<section id="game" class="panel">
+<h2>DESAFIO DE PONTUAÇÃO</h2>
+<p>Toque no robô para ganhar pontos!</p>
+<div class="hud">
+<span>PONTOS: <b id="score">0</b></span>
+<span>TEMPO: <b id="time">30</b>s</span>
+</div>
+<div class="arena">
+<div class="target" id="target" onclick="hit()">🤖</div>
+</div>
+<p id="message">Boa sorte!</p>
+<button onclick="reset()">RECOMEÇAR</button>
+<button class="alt" onclick="back()">VOLTAR</button>
+</section>
+</main>
+<footer>ARENA STRIKE • VERSÃO DEMONSTRATIVA</footer>
+<script>
+let score=0,time=30,active=false,timer;
+function start(){
+document.getElementById('lobby').style.display='none';
+document.getElementById('game').style.display='block';
+reset();
+}
+function move(){
+let t=document.getElementById('target');
+t.style.left=(Math.random()*80+5)+'%';
+t.style.top=(Math.random()*65+5)+'%';
+}
+function hit(){
+if(!active)return;
+score+=10;
+document.getElementById('score').textContent=score;
+move();
+}
+function reset(){
+clearInterval(timer);
+score=0;time=30;active=true;
+document.getElementById('score').textContent=score;
+document.getElementById('time').textContent=time;
+document.getElementById('message').textContent='Boa partida!';
+move();
+timer=setInterval(()=>{
+time--;
+document.getElementById('time').textContent=time;
+if(time<=0){
+clearInterval(timer);
+active=false;
+document.getElementById('message').textContent='Fim de jogo! Pontuação: '+score;
+}
+},1000);
+}
+function back(){
+clearInterval(timer);
+active=false;
+document.getElementById('game').style.display='none';
+document.getElementById('lobby').style.display='block';
+}
+</script>
+</body>
+</html>
